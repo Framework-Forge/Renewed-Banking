@@ -46,12 +46,12 @@ CreateThread(function()
         { group, cachedAccounts[group].amount, json.encode(cachedAccounts[group].transactions), json.encode({}), cachedAccounts[group].frozen }}
     end
     for job in pairs(jobs) do
-        if not cachedAccounts[job] then
+        if job ~= 'unemployed' and not cachedAccounts[job] then
             addCachedAccount(job)
         end
     end
     for gang in pairs(gangs) do
-        if not cachedAccounts[gang] then
+        if gang ~= 'none' and not cachedAccounts[gang] then
             addCachedAccount(gang)
         end
     end
