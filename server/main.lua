@@ -349,7 +349,7 @@ lib.callback.register('Renewed-Banking:server:transfer', function(source, data)
                 return false
             end
         else
-            local Player2 = getPlayerData(source, data.stateid)
+            local Player2 = getPlayerData(data.stateid, data.stateid)
             if not Player2 then
                 TriggerClientEvent('Renewed-Banking:client:sendNotification', source, locale("fail_transfer"))
                 return false
