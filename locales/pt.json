@@ -90,5 +90,6 @@
     "trans_not_found": "Nenhuma transação encontrada",
     "export_data": "Exportar Dados de Transação",
     "account_search": "Pesquisa de Conta...",
-    "account_not_found": "Nenhuma conta encontrada"
+    "account_not_found": "Nenhuma conta encontrada",
+    "business": "Business"
 }

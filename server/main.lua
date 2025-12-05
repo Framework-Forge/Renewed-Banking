@@ -1,6 +1,26 @@
 local cachedAccounts = {}
 local cachedPlayers = {}
 
+local CATEGORY_PERSONAL = 'personal'
+local CATEGORY_BUSINESS = 'business'
+local CATEGORY_ORGANIZATION = 'organization'
+
+local function getCategoryLabel(category)
+    if category == CATEGORY_BUSINESS then
+        return locale("business")
+    elseif category == CATEGORY_PERSONAL then
+        return locale("personal")
+    end
+    return locale("org")
+end
+
+local function setAccountCategory(accountId, category)
+    local account = cachedAccounts[accountId]
+    if not account then return end
+    account.category = category or CATEGORY_ORGANIZATION
+    account.type = getCategoryLabel(account.category)
+end
+
 CreateThread(function()
     Wait(500)
     if not LoadResourceFile("Renewed-Banking", 'web/public/build/bundle.js') or GetCurrentResourceName() ~= "Renewed-Banking" then
@@ -14,7 +34,8 @@ CreateThread(function()
             v.auth = json.decode(v.auth)
             cachedAccounts[job] = { --  cachedAccounts[#cachedAccounts+1]
                 id = job,
-                type = locale("org"),
+                type = getCategoryLabel(CATEGORY_ORGANIZATION),
+                category = CATEGORY_ORGANIZATION,
                 name = GetSocietyLabel(job),
                 frozen = v.isFrozen == 1,
                 amount = v.amount,
@@ -31,10 +52,12 @@ CreateThread(function()
     end
     local jobs, gangs = GetFrameworkGroups()
     local query = {}
-    local function addCachedAccount(group)
+    local function addCachedAccount(group, category)
+        local normalizedCategory = category or CATEGORY_ORGANIZATION
         cachedAccounts[group] = {
             id = group,
-            type = locale('org'),
+            type = getCategoryLabel(normalizedCategory),
+            category = normalizedCategory,
             name = GetSocietyLabel(group),
             frozen = 0,
             amount = 0,
@@ -45,16 +68,19 @@ CreateThread(function()
         query[#query + 1] = {"INSERT INTO bank_accounts_new (id, amount, transactions, auth, isFrozen, creator) VALUES (?, ?, ?, ?, ?, NULL) ",
         { group, cachedAccounts[group].amount, json.encode(cachedAccounts[group].transactions), json.encode({}), cachedAccounts[group].frozen }}
     end
-    for job in pairs(jobs) do
-        if not cachedAccounts[job] then
-            addCachedAccount(job)
+    local function ensureGroupAccounts(groups, category)
+        if type(groups) ~= 'table' then return end
+        for group in pairs(groups) do
+            if not cachedAccounts[group] then
+                addCachedAccount(group, category)
+            else
+                cachedAccounts[group].name = GetSocietyLabel(group)
+                setAccountCategory(group, category)
+            end
         end
     end
-    for gang in pairs(gangs) do
-        if not cachedAccounts[gang] then
-            addCachedAccount(gang)
-        end
-    end
+    ensureGroupAccounts(jobs, CATEGORY_BUSINESS)
+    ensureGroupAccounts(gangs, CATEGORY_ORGANIZATION)
     if #query >= 1 then
         MySQL.transaction.await(query)
     end
@@ -90,7 +116,8 @@ local function getBankData(source)
     local funds = GetFunds(Player)
     bankData[#bankData+1] = {
         id = cid,
-        type = locale("personal"),
+        type = getCategoryLabel(CATEGORY_PERSONAL),
+        category = CATEGORY_PERSONAL,
         name = GetCharacterName(Player),
         frozen = cachedPlayers[cid].isFrozen,
         amount = funds.bank,
@@ -376,7 +403,8 @@ RegisterNetEvent('Renewed-Banking:server:createNewAccount', function(accountid)
     local cid = GetIdentifier(Player)
     cachedAccounts[accountid] = {
         id = accountid,
-        type = locale("org"),
+        type = getCategoryLabel(CATEGORY_ORGANIZATION),
+        category = CATEGORY_ORGANIZATION,
         name = accountid,
         frozen = 0,
         amount = 0,
@@ -592,13 +620,16 @@ local function CreateJobAccount(job, initialBalance)
     
     -- Check if account already exists
     if cachedAccounts[job.name] then
+        cachedAccounts[job.name].name = job.label
+        setAccountCategory(job.name, CATEGORY_BUSINESS)
         return cachedAccounts[job.name]
     end
 
     -- Create the job account in cache
     cachedAccounts[job.name] = {
         id = job.name,
-        type = locale("org"),
+        type = getCategoryLabel(CATEGORY_BUSINESS),
+        category = CATEGORY_BUSINESS,
         name = job.label,
         frozen = 0,
         amount = tonumber(initialBalance) or 0,
