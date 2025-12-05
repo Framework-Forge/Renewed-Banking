@@ -90,5 +90,6 @@
     "trans_not_found": "Δεν βρέθηκαν συναλλαγές",
     "export_data": "Εξαγωγή δεδομένων συναλλαγών",
     "account_search": "Αναζήτηση λογαριασμού...",
-    "account_not_found": "Δεν βρέθηκαν λογαριασμοί"
+    "account_not_found": "Δεν βρέθηκαν λογαριασμοί",
+    "business": "Business"
 }
