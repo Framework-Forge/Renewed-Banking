@@ -1,10 +1,56 @@
 <script lang="ts">
+    import { tick } from "svelte";
     import { accounts, activeAccount, popupDetails, loading, translations } from "../store/stores";
     import {fetchNui} from "../utils/fetchNui"
     let amount: number = 0;
+    let displayAmount: string = "";
+    let amountInput: HTMLInputElement;
+    let cursorDigits: number | null = null;
     let comment: string = "";
     let stateid: string = "";
     $: account = $accounts.find((accountItem: any) => $activeAccount === accountItem.id);
+
+    const digitsOnly = (s: string) => s.replace(/\D/g, '');
+    const countDigitsBefore = (s: string, index: number) => digitsOnly(s.substring(0, index)).length;
+    const formatAmount = (n: number) => (n ? n.toLocaleString('en-US') : '');
+
+    function commitAmount(raw: string, cursorIndex: number) {
+        const num = parseInt(digitsOnly(raw), 10) || 0;
+        displayAmount = formatAmount(num);
+        amount = num;
+        cursorDigits = countDigitsBefore(raw, cursorIndex);
+        tick().then(() => restoreCursor());
+    }
+
+    function restoreCursor() {
+        if (!amountInput || cursorDigits === null) return;
+        let newPos = 0;
+        let count = 0;
+        for (let i = 0; i < displayAmount.length && count < cursorDigits; i++) {
+            if (/\d/.test(displayAmount[i])) count++;
+            newPos++;
+        }
+        amountInput.setSelectionRange(newPos, newPos);
+        cursorDigits = null;
+    }
+
+    function handleAmountKeydown(event: KeyboardEvent) {
+        const el = event.target as HTMLInputElement;
+        const pos = el.selectionStart ?? 0;
+        if (pos !== el.selectionEnd) return;
+        if (event.key === "Backspace" && el.value[pos - 1] === ",") {
+            event.preventDefault();
+            commitAmount(el.value.slice(0, pos - 2) + el.value.slice(pos), pos - 2);
+        } else if (event.key === "Delete" && el.value[pos] === ",") {
+            event.preventDefault();
+            commitAmount(el.value.slice(0, pos) + el.value.slice(pos + 2), pos);
+        }
+    }
+
+    function handleAmountInput(event: Event) {
+        const el = event.target as HTMLInputElement;
+        commitAmount(el.value, el.selectionStart ?? 0);
+    }
 
     function closePopup() {
         popupDetails.update((val: any) => ({
@@ -33,7 +79,7 @@
         <form action="#">
             <div class="form-row">
                 <label for="amount">{$translations.amount}</label>
-                <input bind:value={amount} type="number" name="amount" id="amount" placeholder="$" />
+                <input bind:this={amountInput} value={displayAmount} on:keydown={handleAmountKeydown} on:input={handleAmountInput} type="text" name="amount" id="amount" placeholder="$" />
             </div>
 
             <div class="form-row">
