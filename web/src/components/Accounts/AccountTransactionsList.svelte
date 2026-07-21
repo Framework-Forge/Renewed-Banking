@@ -63,38 +63,70 @@
 
 <style>
     .transactions-container {
-        flex: 1 1 75%;
-        transform: translateY(-0.6rem);
-        padding: 0.5rem;
+        flex: 1 1 73%;
+        padding: 0 0.4rem;
+        display: flex;
+        flex-direction: column;
     }
 
     .heading {
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .heading span:first-child {
+        font-family: var(--font-heading);
     }
 
     .heading div {
         display: flex;
         align-items: center;
+        gap: 0.8rem;
+        background-color: var(--surface-3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+
+    .heading div span {
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-sec);
     }
 
     .heading img {
-        width: 3rem;
-        margin-right: 1rem;
+        width: 2.4rem;
+        height: 2.4rem;
+        object-fit: contain;
+        border-radius: 4px;
     }
 
     .transactions-search {
         width: 100%;
-        border-radius: 5px;
-        border: none;
-        padding: 1.4rem;
-        margin-bottom: 1rem;
-        background-color: var(--clr-primary-light);
-        color: #fff;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.2rem;
+        background-color: var(--surface-3);
+        color: var(--text);
+        font-family: var(--font-family);
+        font-size: 1.2rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .transactions-search::placeholder {
+        color: var(--text-muted);
+    }
+    .transactions-search:focus {
+        border-color: var(--border-active);
+        box-shadow: 0 0 0 3px var(--glow);
     }
 
     .scroller {
         height: 85%;
+        flex: 1 1 auto;
     }
 
     .export-data {
@@ -102,5 +134,4 @@
         display: flex;
         justify-content: flex-end;
     }
-    /* ------------------------- */
 </style>

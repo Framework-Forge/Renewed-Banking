@@ -20,25 +20,37 @@
         height: 90%;
         bottom: 5%;
         left: 5%;
-        padding: 1rem;
+        padding: 1.6rem;
         position: absolute;
-        background-color: rgb(32, 41, 48);
-        border-radius: 5px;
-        border: 4px solid #393A45;
-        background-size: cover;
-        background-position: center;
-        opacity: 1;
+        background-color: var(--surface-1);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
+                    0 25px 50px -12px rgba(0,0,0,0.60);
+        animation: fadeSlideUp 0.25s ease both;
     }
 
     section {
         display: flex;
-        gap: 4rem;
-        height: calc(100% - 2rem);
+        gap: 2.4rem;
+        height: calc(100% - 3.2rem);
     }
+
     h5 {
-        font-size: 1.4rem;
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--brand-bright);
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
+        margin-top: 0.8rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid var(--border);
+    }
+
+    h5 i {
+        color: var(--brand-bright);
+        font-size: 1.2rem;
     }
 </style>

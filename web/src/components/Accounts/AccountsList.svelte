@@ -20,17 +20,32 @@
 
 <style>
     aside {
-        flex: 0 0 25%;
-        padding-left: 1rem;
+        flex: 0 0 27%;
+        padding-left: 0.4rem;
         padding-top: 0.4rem;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+        padding-right: 2rem;
     }
+
     .acc-search {
         width: 100%;
-        border-radius: 5px;
-        border: none;
-        padding: 1.4rem;
-        margin-bottom: 1rem;
-        background-color: var(--clr-primary-light);
-        color: #fff;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.2rem;
+        background-color: var(--surface-3);
+        color: var(--text);
+        font-family: var(--font-family);
+        font-size: 1.2rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .acc-search::placeholder {
+        color: var(--text-muted);
+    }
+    .acc-search:focus {
+        border-color: var(--border-active);
+        box-shadow: 0 0 0 3px var(--glow);
     }
 </style>

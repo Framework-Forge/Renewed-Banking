@@ -60,85 +60,121 @@
 
 <style>
     .transaction {
-        background-color: var(--clr-primary-light);
-        padding: 1.5rem;
-        border-radius: 6px;
-        font-size: 1.5rem;
-        font-weight: 300;
-        box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
-        -webkit-box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
-        -moz-box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
+        background-color: var(--surface-2);
+        padding: 1.4rem 1.6rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        font-size: 1.3rem;
+        font-weight: 400;
+        transition: border-color 0.2s ease;
+    }
+    .transaction:hover {
+        border-color: var(--border-hover);
+    }
+    .transaction:not(:last-child) {
+        margin-bottom: 1rem;
     }
 
-    .transaction:not(:last-child) {
-        margin-bottom: 1.5rem;
-    }
+    /* ── Header row ── */
     .title-container {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.7rem;
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text);
     }
 
+    /* deposit type badge */
     .title-container > p {
-        background-color: var(--clr-green);
-        color: #0f745e;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-    }
-    .title-container.withdrawTitle > p {
-        background-color: var(--clr-orange);
-        color: #754a1a;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-    }
-    .trans_id {
-        color: #ced3eb;
-        background-color: var(--clr-green);
-        color: #0f745e;
+        background-color: rgba(16, 185, 129, 0.15);
+        color: var(--brand-bright);
+        border: 1px solid rgba(16, 185, 129, 0.30);
         padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-family: var(--font-family);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+    /* withdraw type badge */
+    .title-container.withdrawTitle > p {
+        background-color: rgba(248, 113, 113, 0.12);
+        color: var(--danger);
+        border: 1px solid rgba(248, 113, 113, 0.28);
+    }
+
+    /* transaction ID chip */
+    .trans_id {
+        background-color: rgba(16, 185, 129, 0.12);
+        color: var(--brand-bright);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        padding: 0.3rem 0.9rem;
         border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 1.1rem;
+        font-family: var(--font-heading);
+        font-weight: 500;
     }
-
     .trans_id.withdrawId {
-        background-color: var(--clr-orange);
-        color: #754a1a;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
+        background-color: rgba(248, 113, 113, 0.10);
+        color: var(--danger);
+        border-color: rgba(248, 113, 113, 0.25);
     }
 
     .transaction h5 {
         display: flex;
         justify-content: space-between;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1rem;
-        border-bottom: 3px solid #fff;
+        align-items: center;
+        padding-bottom: 0.9rem;
+        margin-bottom: 1.1rem;
+        border-bottom: 1px solid var(--border);
     }
 
+    /* ── Amount / details row ── */
     .transaction h4 {
         display: flex;
         justify-content: space-between;
+        align-items: flex-start;
         font-size: 1.2rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.2rem;
+        color: var(--text-sec);
     }
+    /* amount — deposit */
     .transaction h4 span:first-child {
-        font-size: 1.4rem;
-        color: var(--clr-green);
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--brand-bright);
+        letter-spacing: -0.01em;
     }
+    /* amount — withdraw */
     .transaction h4 span.withdraw {
-        color: var(--clr-orange);
+        color: var(--danger);
     }
     .transaction h4 span:nth-child(2) {
-        margin-top: 0.5rem;
-        margin-left: 0.2rem;
-        color: #ced3eb;
+        color: var(--text-sec);
+        font-size: 1.2rem;
     }
+    .transaction h4 span:nth-child(3) {
+        color: var(--text-muted);
+        font-size: 1.15rem;
+        text-align: right;
+    }
+
+    /* ── Message row ── */
     .transaction h6 {
-        color: #B6BACF;
-        margin: 1rem 0 1.5rem;
-}
+        color: var(--text-muted);
+        font-size: 1.15rem;
+        font-weight: 400;
+        line-height: 1.5;
+        padding-top: 0.8rem;
+        border-top: 1px solid var(--border);
+        margin: 0;
+    }
     .transaction h6 span {
         margin-top: 0.5rem;
     }
