@@ -30,6 +30,7 @@
 <section class="popup-container">
     <section class="popup-content">
         <h2> {$popupDetails.account.type}{$translations.account}/ {$popupDetails.account.id}</h2>
+        <hr class="popup-divider" />
         <form action="#">
             <div class="form-row">
                 <label for="amount">{$translations.amount}</label>
@@ -63,48 +64,77 @@
         left: 0;
         bottom: 0;
         right: 0;
-        background-color: rgba(255, 255, 255, 0.3);
-
+        background-color: rgba(0, 0, 0, 0.55);
         display: flex;
         align-items: center;
         justify-content: center;
+        animation: fadeSlideUp 0.2s ease both;
     }
 
     .popup-content {
-        max-width: 60rem;
+        max-width: 54rem;
         width: 100%;
-        background-color: var(--clr-primary);
-        padding: 5rem;
-        border-radius: 1rem;
+        background-color: var(--surface-1);
+        border: 1px solid var(--border);
+        padding: 4rem;
+        border-radius: var(--radius);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
+                    0 25px 50px -12px rgba(0,0,0,0.60);
     }
 
     h2 {
-        margin-bottom: 3rem;
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        margin-bottom: 0.4rem;
         text-align: center;
-        font-size: 2rem;
+    }
+
+    .popup-divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 1.8rem 0 2.4rem;
     }
 
     .form-row {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        color: #F3F4F5;
-        margin-bottom: 2rem;
+        gap: 0.6rem;
+        color: var(--text);
+        margin-bottom: 1.6rem;
     }
-    .form-row label,
-    .form-row input {
-        font-size: 1.4rem;
-        color: inherit;
+    .form-row label {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-sec);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
     }
-
     .form-row input {
         width: 100%;
-        border-radius: 5px;
-        background-color: transparent;
-        border: none;
-        padding: 1.4rem;
-        margin-bottom: 1rem;
-        background-color: #2a2b33;
-        color: #fff; 
+        border-radius: 8px;
+        background-color: var(--surface-3);
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        color: var(--text);
+        font-family: var(--font-family);
+        font-size: 1.4rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-row input::placeholder {
+        color: var(--text-muted);
+    }
+    .form-row input:focus {
+        border-color: var(--border-active);
+        box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    .btns-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-top: 0.8rem;
     }
 </style>

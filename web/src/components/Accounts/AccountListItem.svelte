@@ -47,44 +47,76 @@
 
 <style>
     .account {
-        background-color: var(--clr-primary);
-        padding: 1rem;
-        border-radius: 10px;
+        background-color: var(--surface-2);
+        padding: 1.2rem 1.4rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
         cursor: pointer;
-        box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
-        -webkit-box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
-        -moz-box-shadow: 3px 5px 37px 4px rgba(48,48,48,0.38);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }
     .account:not(:last-child) {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .account:hover {
+        border-color: var(--border-active);
+        box-shadow: 0 0 0 3px var(--glow);
+        background-color: var(--surface-3);
     }
 
     h4 {
-        font-size: 1.5rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         margin-bottom: 0.5rem;
     }
     h5 {
-        font-size: 1.2rem;
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1rem;
+        line-height: 1.4;
     }
     h5 span {
-        margin-top: 0.3rem;
+        font-family: var(--font-family);
+        font-size: 1.1rem;
+        font-weight: 400;
+        color: var(--text-sec);
+        display: block;
+        margin-top: 0.2rem;
     }
 
     .price {
         text-align: right;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
     }
     .price strong {
-        font-size: 1.6rem;
+        font-family: var(--font-heading);
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--brand-bright);
+        letter-spacing: -0.02em;
+        display: block;
+    }
+    .price span {
+        font-size: 1rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     /* make first btn in btn-group take up the whole first row */
-  .btns-group > :first-child {
-    grid-column: 1 / -1;
-  }
-  .btns-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 0.5rem;
-  }
+    .btns-group > :first-child {
+        grid-column: 1 / -1;
+    }
+    .btns-group {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
 </style>
