@@ -1,10 +1,42 @@
-lib.locale()
+locale = pr_lib.locale()
 Config = {
     -- Framework automatically detected
     -- QB, QBX, and ESX preconfigured edit the framework.lua to add functionality to other frameworks
-    renewedMultiJob = false, -- QBCORE ONLY! https://github.com/Renewed-Scripts/qb-phone  
+    renewedMultiJob = true, -- QBCORE ONLY! https://github.com/Renewed-Scripts/qb-phone  
     progressbar = 'circle', -- circle or rectangle (Anything other than circle will default to rectangle)
     currency = 'USD', -- USD, EUR, GBP ect.....
+    bankName = 'Los Santos',
+    bankSubtitle = 'Banking',
+    bankNotifications = {
+        enabled = true,
+        senderNumber = '0800000000',
+        includeBalance = true,
+        includeReason = true,
+    },
+    appearance = {
+        logoUrl = 'img/bank.png',
+        overviewTitle = '',
+        overviewSubtitle = '',
+        uiOpacity = 0.98,
+    },
+    invoices = {
+        defaultDueDays = 7,
+        defaultInterestRate = 0.0,
+        defaultInterestInterval = 'day',
+        maxInterestRate = 100.0,
+        maxTotalMultiplier = 10.0,
+    },
+    theme = {
+        primary = '#ff7a1a',
+        primaryDark = '#ff8c2a',
+        primaryText = '#ffffff',
+        background = '#0a0a0c',
+        surface = '#121214',
+        card = '#18181c',
+        border = '#2d2d35',
+        text = '#ffffff',
+        textMuted = '#8e8e9f'
+    },
     atms = {
         `prop_atm_01`,
         `prop_atm_02`,

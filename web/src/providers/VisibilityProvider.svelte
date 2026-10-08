@@ -10,7 +10,15 @@
     popupDetails,
     atm,
     translations,
-    currency
+    currency,
+    uiLocale,
+    theme,
+    bankName,
+    bankSubtitle,
+    applyAppearance,
+    currentView,
+    invoices,
+    invoiceAdmin
   } from '../store/stores';
   import { useNuiEvent } from '../utils/useNuiEvent';
   let isVisible: boolean;
@@ -22,13 +30,27 @@
   useNuiEvent<any>('setVisible', data => {
     accounts.set(data.accounts);
     activeAccount.update(() => data.accounts[0].id)
+    currentView.set('transactions');
+    fetchNui<any>('getInvoices', {accountId:data.accounts[0].id}).then(data => {
+      invoices.set(Array.isArray(data) ? data : (data && data.entries) || []);
+      invoiceAdmin.set({canManage:!!(data && data.canManage),settings:(data && data.settings)||{}});
+      if (data && data.settings) applyAppearance(data.settings);
+    });
     visibility.set(data.status);
     loading.set(data.loading);
     atm.set(data.atm);
+    if (data.theme) theme.set(data.theme);
+    if (data.bankName) bankName.set(data.bankName);
+    if (data.bankSubtitle) bankSubtitle.set(data.bankSubtitle);
+    if (data.appearance) applyAppearance({...data.appearance, bankName:data.bankName, bankSubtitle:data.bankSubtitle});
   })
 
   useNuiEvent<any>('setLoading', data => {
     loading.set(data.status);
+    if (data.theme) theme.set(data.theme);
+    if (data.bankName) bankName.set(data.bankName);
+    if (data.bankSubtitle) bankSubtitle.set(data.bankSubtitle);
+    if (data.appearance) applyAppearance({...data.appearance, bankName:data.bankName, bankSubtitle:data.bankSubtitle});
   })
 
   useNuiEvent<any>('notify', data => {
@@ -39,8 +61,17 @@
   })
 
   useNuiEvent<any>('updateLocale', data => {
-    translations.set(data.translations);
+    translations.set(data.translations || {});
     currency.set(data.currency);
+    const language = String(data.locale || 'en').replace(/_/g, '-');
+    try {
+      const canonical = new Intl.DateTimeFormat(language).resolvedOptions().locale;
+      uiLocale.set(canonical);
+      document.documentElement.lang = canonical;
+    } catch (_) {
+      uiLocale.set('en');
+      document.documentElement.lang = 'en';
+    }
   })
   
   onMount(() => {
