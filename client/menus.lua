@@ -1,5 +1,5 @@
 RegisterNetEvent("Renewed-Banking:client:accountManagmentMenu", function()
-    lib.registerContext({
+    pr_lib.registerContext({
         id = 'renewed_banking_account_management',
         title = locale("bank_name"),
         position = 'top-right',
@@ -7,29 +7,33 @@ RegisterNetEvent("Renewed-Banking:client:accountManagmentMenu", function()
             {
                 title = locale("create_account"),
                 icon = 'file-invoice-dollar',
-                metadata = {locale("create_account_txt")},
-                event = "Renewed-Banking:client:createAccountMenu"
+                description = locale("create_account_txt"),
+                onSelect = function()
+                    TriggerEvent("Renewed-Banking:client:createAccountMenu")
+                end
             },
             {
                 title = locale("manage_account"),
                 icon = 'users-gear',
-                metadata = {locale("manage_account_txt")},
-                event = 'Renewed-Banking:client:viewAccountsMenu'
+                description = locale("manage_account_txt"),
+                onSelect = function()
+                    TriggerEvent('Renewed-Banking:client:viewAccountsMenu')
+                end
             }
         }
     })
-    lib.showContext("renewed_banking_account_management")
+    pr_lib.showContext("renewed_banking_account_management")
 end)
 
 RegisterNetEvent("Renewed-Banking:client:createAccountMenu", function()
-    local input = lib.inputDialog(locale("bank_name"), {{
+    local input = pr_lib.inputDialog(locale("bank_name"), {{
         type = "input",
         label = locale("account_id"),
         placeholder = "a_test_account"
     }})
     if input and input[1] then
         input[1] = input[1]:lower():gsub("%s+", "")
-        TriggerServerEvent("Renewed-Banking:server:createNewAccount", input[1])
+        pr_lib.callback.await("Renewed-Banking:server:createNewAccount", 10000, input[1])
     end
 end)
 
@@ -37,34 +41,35 @@ RegisterNetEvent("Renewed-Banking:client:accountsMenu", function(data)
     local menuOpts = {}
     if #data >= 1 then
         for k=1, #data do
+            local acc = data[k]
             menuOpts[#menuOpts+1] = {
-                title = data[k],
+                title = acc,
                 icon = 'users-gear',
-                metadata = {locale("view_members")},
-                event = "Renewed-Banking:client:accountsMenuView",
-                args = {
-                    account = data[k],
-                }
+                description = locale("view_members"),
+                onSelect = function()
+                    TriggerEvent("Renewed-Banking:client:accountsMenuView", { account = acc })
+                end
             }
         end
     else
         menuOpts[#menuOpts+1] = {
             title = locale("no_account"),
-            metadata = {locale("no_account_txt")},
+            description = locale("no_account_txt"),
+            disabled = true
         }
     end
-    lib.registerContext({
+    pr_lib.registerContext({
         id = 'renewed_banking_account_list',
         title = locale("bank_name"),
         position = 'top-right',
         menu = "renewed_banking_account_management",
         options = menuOpts
     })
-    lib.showContext("renewed_banking_account_list")
+    pr_lib.showContext("renewed_banking_account_list")
 end)
 
 RegisterNetEvent("Renewed-Banking:client:accountsMenuView", function(data)
-    lib.registerContext({
+    pr_lib.registerContext({
         id = 'renewed_banking_account_view',
         title = locale("bank_name"),
         position = 'top-right',
@@ -73,63 +78,72 @@ RegisterNetEvent("Renewed-Banking:client:accountsMenuView", function(data)
             {
                 title = locale("manage_members"),
                 icon = 'users-gear',
-                metadata = {locale("manage_members_txt")},
-                serverEvent = "Renewed-Banking:server:viewMemberManagement",
-                args = data
+                description = locale("manage_members_txt"),
+                onSelect = function()
+                    TriggerEvent("Renewed-Banking:client:openMemberManagement", data)
+                end
             },
             {
                 title = locale("edit_acc_name"),
                 icon = 'users-gear',
-                metadata = {locale("edit_acc_name_txt")},
-                event = "Renewed-Banking:client:changeAccountName",
-                args = data
+                description = locale("edit_acc_name_txt"),
+                onSelect = function()
+                    TriggerEvent("Renewed-Banking:client:changeAccountName", data)
+                end
             },
             {
                 title = locale("delete_account"),
                 icon = 'users-gear',
-                metadata = {locale("delete_account_txt")},
-                serverEvent = "Renewed-Banking:server:deleteAccount",
-                args = data
+                description = locale("delete_account_txt"),
+                onSelect = function()
+                    TriggerEvent("Renewed-Banking:client:deleteAccount", data)
+                end
             }
         }
     })
-    lib.showContext("renewed_banking_account_view")
+    pr_lib.showContext("renewed_banking_account_view")
+end)
+
+RegisterNetEvent("Renewed-Banking:client:openMemberManagement", function(data)
+    local memberData = pr_lib.callback.await("Renewed-Banking:server:viewMemberManagement", 10000, data)
+    if memberData then
+        TriggerEvent("Renewed-Banking:client:viewMemberManagement", memberData)
+    end
 end)
 
 RegisterNetEvent("Renewed-Banking:client:viewMemberManagement", function(data)
     local menuOpts = {}
     local account = data.account
     for k,v in pairs(data.members) do
+        local cidKey, memberName = k, v
         menuOpts[#menuOpts+1] = {
-            title = v,
-            metadata = {locale("remove_member_txt")},
-            event = 'Renewed-Banking:client:removeMemberConfirmation',
-            args = {
-                account = account,
-                cid = k,
-            }
+            title = memberName,
+            description = locale("remove_member_txt"),
+            onSelect = function()
+                TriggerEvent('Renewed-Banking:client:removeMemberConfirmation', { account = account, cid = cidKey })
+            end
         }
     end
     menuOpts[#menuOpts+1] = {
         title = locale("add_member"),
-        metadata = {locale("add_member_txt")},
-        event = 'Renewed-Banking:client:addAccountMember',
-        args = {
-            account = account
-        }
+        description = locale("add_member_txt"),
+        icon = 'user-plus',
+        onSelect = function()
+            TriggerEvent('Renewed-Banking:client:addAccountMember', { account = account })
+        end
     }
-    lib.registerContext({
+    pr_lib.registerContext({
         id = 'renewed_banking_member_manage',
         title = locale("bank_name"),
         position = 'top-right',
         menu = 'renewed_banking_account_view',
         options = menuOpts
     })
-    lib.showContext("renewed_banking_member_manage")
+    pr_lib.showContext("renewed_banking_member_manage")
 end)
 
 RegisterNetEvent('Renewed-Banking:client:removeMemberConfirmation', function(data)
-    lib.registerContext({
+    pr_lib.registerContext({
         id = 'renewed_banking_member_remove',
         title = locale('bank_name'),
         position = 'top-right',
@@ -137,35 +151,45 @@ RegisterNetEvent('Renewed-Banking:client:removeMemberConfirmation', function(dat
         options = {
             {
                 title = locale('remove_member'),
-                metadata = {locale('remove_member_txt2', data.cid)},
-                serverEvent = 'Renewed-Banking:server:removeAccountMember',
-                args = data
+                description = locale('remove_member_txt2', data.cid),
+                icon = 'user-minus',
+                onSelect = function()
+                    TriggerEvent('Renewed-Banking:client:removeAccountMember', data)
+                end
             }
         }
     })
-    lib.showContext('renewed_banking_member_remove')
+    pr_lib.showContext('renewed_banking_member_remove')
+end)
+
+RegisterNetEvent('Renewed-Banking:client:removeAccountMember', function(data)
+    pr_lib.callback.await('Renewed-Banking:server:removeAccountMember', 10000, data)
 end)
 
 RegisterNetEvent('Renewed-Banking:client:addAccountMember', function(data)
-    local input = lib.inputDialog(locale('add_account_member'), {{
+    local input = pr_lib.inputDialog(locale('add_account_member'), {{
         type = 'input',
         label = locale('citizen_id'),
         placeholder = '1001'
     }})
     if input and input[1] then
         input[1] = input[1]:upper():gsub("%s+", "")
-        TriggerServerEvent('Renewed-Banking:server:addAccountMember', data.account, input[1])
+        pr_lib.callback.await('Renewed-Banking:server:addAccountMember', 10000, data.account, input[1])
     end
 end)
 
 RegisterNetEvent('Renewed-Banking:client:changeAccountName', function(data)
-    local input = lib.inputDialog(locale('change_account_name'), {{
+    local input = pr_lib.inputDialog(locale('change_account_name'), {{
         type = 'input',
         label = locale('account_id'),
         placeholder = 'savings-1001'
     }})
     if input and input[1] then
         input[1] = input[1]:lower():gsub("%s+", "")
-        TriggerServerEvent('Renewed-Banking:server:changeAccountName', data.account, input[1])
+        pr_lib.callback.await('Renewed-Banking:server:changeAccountName', 10000, data.account, input[1])
     end
+end)
+
+RegisterNetEvent('Renewed-Banking:client:deleteAccount', function(data)
+    pr_lib.callback.await('Renewed-Banking:server:deleteAccount', 10000, data)
 end)

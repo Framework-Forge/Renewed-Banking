@@ -2,10 +2,9 @@
     import VisibilityProvider from "./providers/VisibilityProvider.svelte";
     import { debugData } from "./utils/debugData";
     import AccountsContainer from "./components/AccountsContainer.svelte";
-    import Popup from "./components/Popup.svelte";
     import Loading from "./components/Loading.svelte";
     import Notification from "./components/Notification.svelte";
-    import { popupDetails, loading, notify } from "./store/stores";
+    import { loading, notify, theme, uiOpacity } from "./store/stores";
 
     debugData([
         {
@@ -13,6 +12,24 @@
             data: true,
         },
     ]);
+
+    $: {
+        if ($theme) {
+            const root = document.documentElement;
+            root.style.setProperty('--clr-green', $theme.primary);
+            root.style.setProperty('--clr-orange', $theme.primaryDark);
+            root.style.setProperty('--clr-accent-text', $theme.primaryText);
+            root.style.setProperty('--clr-primary-dark', $theme.background);
+            root.style.setProperty('--clr-primary', $theme.surface);
+            root.style.setProperty('--clr-primary-light', $theme.card);
+            root.style.setProperty('--clr-border', $theme.border);
+            root.style.setProperty('--clr-text', $theme.text);
+            root.style.setProperty('--clr-text-bright', $theme.text);
+            root.style.setProperty('--clr-text-muted', $theme.textMuted);
+            root.style.setProperty('--clr-accent-glow', $theme.primary + '40');
+            root.style.setProperty('--ui-opacity', String($uiOpacity));
+        }
+    }
 </script>
 
 <svelte:head>
@@ -20,9 +37,6 @@
 </svelte:head>
 <VisibilityProvider>
     <AccountsContainer />
-    {#if $popupDetails.actionType !== ""}
-        <Popup />
-    {/if}
     {#if $notify !== ""}
         <Notification />
     {/if}

@@ -1,8 +1,112 @@
-local isVisible = false
-local progressBar = Config.progressbar == 'circle' and lib.progressCircle or lib.progressBar
-PlayerPed = cache.ped
+local bankPoints = {}
+local atmOptions
+local atmInteraction
+local interactionSettings = pr_lib.cache.get('Renewed-Banking:interaction') or {mode='target', respectWalls=false, revision=-1}
 
-lib.onCache('ped', function(newPed)
+local function clearBankPoint(point)
+    if point.interactionId then
+        exports.pr_bridge:RemoveInteraction(point.interactionId)
+        point.interactionId = nil
+    end
+    if point.ped then
+        pr_lib.target.removeLocalEntity(point.ped, {'renewed_banking_accountmng','renewed_banking_openui'})
+    end
+end
+
+local function interactionData(options, distance)
+    local converted = {}
+    for i, option in ipairs(options) do
+        option.ignoreLos = not interactionSettings.respectWalls
+        option.wallDetection = interactionSettings.respectWalls == true
+        converted[i] = {
+            label=option.label, name=option.name,
+            canInteract=function(entity,coords)
+                return not option.canInteract or option.canInteract(entity,#(GetEntityCoords(PlayerPedId())-coords))
+            end,
+            action=function() TriggerEvent(option.event, {atm=option.atm}) end
+        }
+    end
+    return {
+        options=converted, distance=math.max(8,distance), interactDst=distance,
+        ignoreLos=not interactionSettings.respectWalls,
+        wallDetection=interactionSettings.respectWalls == true
+    }
+end
+
+local function bindBankPoint(point)
+    clearBankPoint(point)
+    if not point.ped or not DoesEntityExist(point.ped) then return end
+    local data = interactionData(point.targetOptions,4.5)
+    if interactionSettings.mode == 'interact' then
+        data.entity=point.ped
+        data.offset=vector3(0,0,0.8)
+        point.interactionId=exports.pr_bridge:AddLocalEntityInteraction(data)
+    else
+        pr_lib.target.addLocalEntity(point.ped,point.targetOptions)
+    end
+end
+
+local function bindBankAtms()
+    if not atmOptions then return end
+    pr_lib.target.removeModel(Config.atms, {'renewed_banking_openui'})
+    if atmInteraction then exports.pr_bridge:RemoveInteraction(atmInteraction); atmInteraction=nil end
+    local data=interactionData(atmOptions,2.5)
+    if interactionSettings.mode == 'interact' then
+        data.models=Config.atms
+        atmInteraction=exports.pr_bridge:AddModelInteraction(data)
+    else
+        pr_lib.target.addModel(Config.atms,atmOptions)
+    end
+end
+
+local function applyInteractionSettings(value)
+    if type(value)~='table' then return end
+    local revision = tonumber(value.revision)
+    if not revision or revision <= (interactionSettings.revision or -1) then return end
+    interactionSettings={mode=value.mode == 'interact' and 'interact' or 'target', respectWalls=value.respectWalls == true, revision=revision}
+    pr_lib.cache.set('Renewed-Banking:interaction', interactionSettings)
+    bindBankAtms()
+    for _,point in ipairs(bankPoints) do bindBankPoint(point) end
+end
+
+RegisterNetEvent('Renewed-Banking:client:interactionSettings', function(value)
+    -- Only the server may publish authoritative settings.
+    if source ~= 65535 then return end
+    applyInteractionSettings(value)
+end)
+
+CreateThread(function()
+    for attempt = 1, 3 do
+        local ok, snapshot = pcall(pr_lib.callback.await, 'Renewed-Banking:server:getInteractionSettings', false)
+        if ok and type(snapshot) == 'table' then
+            applyInteractionSettings(snapshot)
+            return
+        end
+        Wait(1000 * attempt)
+    end
+    print('[Renewed-Banking] Nao foi possivel obter a configuracao de interacao pelo bridge.')
+end)
+
+local function doProgressBar(data)
+    if type(pr_lib.progressCircle) == "function" and Config.progressbar == "circle" then
+        return pr_lib.progressCircle(data)
+    elseif type(pr_lib.progressBar) == "function" then
+        return pr_lib.progressBar(data)
+    elseif type(pr_lib.progressbar) == "table" then
+        if Config.progressbar == "circle" and type(pr_lib.progressbar.doProgressCircle) == "function" then
+            return pr_lib.progressbar.doProgressCircle(data)
+        elseif type(pr_lib.progressbar.progressBar) == "function" then
+            return pr_lib.progressbar.progressBar(data)
+        elseif type(pr_lib.progressbar.doProgressbar) == "function" then
+            return pr_lib.progressbar.doProgressbar(data)
+        end
+    end
+    return true
+end
+local progressBar = doProgressBar
+PlayerPed = pr_lib.cache.ped
+
+pr_lib.onCache('ped', function(newPed)
 	PlayerPed = newPed
 end)
 
@@ -12,12 +116,20 @@ local function nuiHandler(val)
 end
 
 local function openBankUI(isAtm)
-    SendNUIMessage({action = 'setLoading', status = true})
+    SendBankingLocale()
+    SendNUIMessage({
+        action = 'setLoading',
+        status = true,
+        theme = Config.theme,
+        bankName = Config.bankName,
+        bankSubtitle = Config.bankSubtitle,
+        appearance = Config.appearance
+    })
     nuiHandler(true)
-    lib.callback('renewed-banking:server:initalizeBanking', false, function(accounts)
+    pr_lib.callback.trigger('renewed-banking:server:initalizeBanking', function(accounts)
         if not accounts then
             nuiHandler(false)
-            lib.notify({title = locale('bank_name'), description = locale('loading_failed'), type = 'error'})
+            pr_lib.notify.Notify({title = locale('bank_name'), description = locale('loading_failed'), type = 'error'})
             return
         end
         SetTimeout(1000, function()
@@ -26,7 +138,11 @@ local function openBankUI(isAtm)
                 status = isVisible,
                 accounts = accounts,
                 loading = false,
-                atm = isAtm
+                atm = isAtm,
+                theme = Config.theme,
+                bankName = Config.bankName,
+                bankSubtitle = Config.bankSubtitle,
+                appearance = Config.appearance
             })
         end)
     end)
@@ -55,7 +171,7 @@ RegisterNetEvent('Renewed-Banking:client:openBankUI', function(data)
         ClearPedTasksImmediately(PlayerPed)
     else
         ClearPedTasksImmediately(PlayerPed)
-        lib.notify({title = locale('bank_name'), description = locale('canceled'), type = 'error'})
+        pr_lib.notify.Notify({title = locale('bank_name'), description = locale('canceled'), type = 'error'})
     end
 end)
 
@@ -70,11 +186,44 @@ local bankActions = {'deposit', 'withdraw', 'transfer'}
 CreateThread(function ()
     for k=1, #bankActions do
         RegisterNUICallback(bankActions[k], function(data, cb)
-            local newTransaction = lib.callback.await('Renewed-Banking:server:'..bankActions[k], false, data)
+            local newTransaction = pr_lib.callback.await('Renewed-Banking:server:'..bankActions[k], 10000, data)
             cb(newTransaction)
         end)
     end
-    exports.ox_target:addModel(Config.atms, {{
+    RegisterNUICallback('getInvoices', function(data, cb)
+        cb(pr_lib.callback.await('Renewed-Banking:server:getInvoices', 10000, data and data.accountId) or {})
+    end)
+    RegisterNUICallback('saveInvoiceSettings', function(data, cb)
+        cb(pr_lib.callback.await('Renewed-Banking:server:saveInvoiceSettings', 10000, data) or {success=false})
+    end)
+    RegisterNUICallback('payInvoice', function(data, cb)
+        local ok, result = pcall(function()
+            return pr_lib.callback.await('Renewed-Banking:server:payInvoice', 10000, data)
+        end)
+        if not ok then
+            print(('[Renewed-Banking] payInvoice callback failed: %s'):format(tostring(result)))
+            result = { success = false, reason = 'server_error' }
+        elseif type(result) ~= 'table' then
+            result = { success = false, reason = 'no_response' }
+        end
+        if result.success then
+            local accountsOk, updatedAccounts = pcall(function()
+                return pr_lib.callback.await('renewed-banking:server:initalizeBanking', 10000)
+            end)
+            result.accounts = accountsOk and updatedAccounts or {}
+        end
+        cb(result)
+    end)
+    local memberCallbacks = {'getAccountMembers', 'addAccountDependent', 'updateAccountDependent', 'removeAccountDependent'}
+    for i = 1, #memberCallbacks do
+        local callbackName = memberCallbacks[i]
+        RegisterNUICallback(callbackName, function(data, cb)
+            local payload = callbackName == 'getAccountMembers' and data and data.accountId or data
+            cb(pr_lib.callback.await('Renewed-Banking:server:' .. callbackName, 10000, payload)
+                or {success=false, reason='no_response'})
+        end)
+    end
+    atmOptions = {{
         name = 'renewed_banking_openui',
         event = 'Renewed-Banking:client:openBankUI',
         icon = 'fas fa-money-check',
@@ -83,7 +232,8 @@ CreateThread(function ()
         canInteract = function(_, distance)
             return distance < 2.5
         end
-    }})
+    }}
+    bindBankAtms()
 end)
 
 local pedSpawned = false
@@ -92,7 +242,7 @@ function CreatePeds()
     if pedSpawned then return end
     for k = 1, #Config.peds do
         local coords = Config.peds[k].coords
-        local pedPoint = lib.points.new({
+        local pedPoint = pr_lib.points.new({
             coords = coords,
             distance = 300,
             model = joaat(Config.peds[k].model),
@@ -107,7 +257,8 @@ function CreatePeds()
                 canInteract = function(_, distance)
                     return distance < 4.5 and Config.peds[k].createAccounts
                 end
-            },{
+            },
+            {
                 name = 'renewed_banking_openui',
                 event = 'Renewed-Banking:client:openBankUI',
                 icon = 'fas fa-money-check',
@@ -119,8 +270,10 @@ function CreatePeds()
             }}
         })
 
+        bankPoints[#bankPoints+1]=pedPoint
+
         function pedPoint:onEnter()
-            lib.requestModel(self.model, 10000)
+            pr_lib.requestModel(self.model, 10000)
 
             self.ped = CreatePed(0, self.model, self.coords.x, self.coords.y, self.coords.z-1, self.heading, false, false)
             SetEntityHeading(self.ped, self.heading)
@@ -130,11 +283,11 @@ function CreatePeds()
             FreezeEntityPosition(self.ped, true)
             SetEntityInvincible(self.ped, true)
             SetBlockingOfNonTemporaryEvents(self.ped, true)
-            exports.ox_target:addLocalEntity(self.ped, self.targetOptions)
+            bindBankPoint(self)
         end
 
         function pedPoint:onExit()
-            exports.ox_target:removeLocalEntity(self.ped, self.advanced and 'renewed_banking_accountmng' or 'renewed_banking_openui')
+            clearBankPoint(self)
             if DoesEntityExist(self.ped) then
                 DeletePed(self.ped)
             end
@@ -156,8 +309,9 @@ end
 
 function DeletePeds()
     if not pedSpawned then return end
-    local points = lib.points.getAllPoints()
+    local points = bankPoints
     for i = 1, #points do
+        clearBankPoint(points[i])
         if DoesEntityExist(points[i].ped) then
             DeletePed(points[i].ped)
         end
@@ -166,23 +320,21 @@ function DeletePeds()
     for i = 1, #blips do
         RemoveBlip(blips[i])
     end
+    bankPoints = {}
+    blips = {}
     pedSpawned = false
 end
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    exports.ox_target:removeModel(Config.atms, {'renewed_banking_openui'})
+    pr_lib.target.removeModel(Config.atms, {'renewed_banking_openui'})
+    if atmInteraction then exports.pr_bridge:RemoveInteraction(atmInteraction) end
     DeletePeds()
 end)
 
-RegisterNetEvent('Renewed-Banking:client:sendNotification', function(msg)
-    if not msg then return end
-    SendNUIMessage({
-        action = 'notify',
-        status = msg,
-    })
-end)
-
 RegisterNetEvent('Renewed-Banking:client:viewAccountsMenu', function()
-    TriggerServerEvent('Renewed-Banking:server:getPlayerAccounts')
+    local accounts = pr_lib.callback.await('Renewed-Banking:server:getPlayerAccounts', 10000)
+    if accounts then
+        TriggerEvent('Renewed-Banking:client:accountsMenu', accounts)
+    end
 end)
