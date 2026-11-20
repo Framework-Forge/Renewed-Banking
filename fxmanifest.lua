@@ -1,10 +1,10 @@
 fx_version 'cerulean'
 game 'gta5'
-version '2.1.4'
+version '2.1.6'
 
 description 'Renewed Banking'
 Author "uShifty#1733"
-version '2.1.4'
+version '2.1.6'
 
 lua54 'yes'
 
@@ -38,3 +38,5 @@ provide 'qb-management'
 provide 'esx_society'
 
 dependency 'pr_bridge'
+
+server_script 'server/version.lua'

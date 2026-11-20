@@ -1,5 +1,6 @@
 locale = pr_lib.locale()
 Config = {
+    VersionCheck = true,
     -- Framework automatically detected
     -- QB, QBX, and ESX preconfigured edit the framework.lua to add functionality to other frameworks
     renewedMultiJob = true, -- QBCORE ONLY! https://github.com/Renewed-Scripts/qb-phone  
